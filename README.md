@@ -1,2 +1,1 @@
-# Machine-Learning-NN
-Machine Learning CNN and RNN
+# CNN-RNN-FromScratch
