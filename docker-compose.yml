@@ -1,0 +1,203 @@
+version: '3.8'
+
+services:
+  # Raft Node 1 - Bootstrap Leader
+  raft-node-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-node-1
+    environment:
+      - NODE_ID=raft-node-1
+      - NODE_IP=172.20.0.10
+      - NODE_PORT=8001
+      - CLUSTER_INIT=true
+      - LOG_LEVEL=info
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./logs:/app/logs
+      - raft-node-1-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+  # Raft Node 2 - Follower
+  raft-node-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-node-2
+    environment:
+      - NODE_ID=raft-node-2
+      - NODE_IP=172.20.0.11
+      - NODE_PORT=8001
+      - CONTACT_IP=172.20.0.10
+      - CONTACT_PORT=8001
+      - LOG_LEVEL=info
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "8002:8001"
+    volumes:
+      - ./logs:/app/logs
+      - raft-node-2-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      - raft-node-1
+    restart: unless-stopped
+
+  # Raft Node 3 - Follower
+  raft-node-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-node-3
+    environment:
+      - NODE_ID=raft-node-3
+      - NODE_IP=172.20.0.12
+      - NODE_PORT=8001
+      - CONTACT_IP=172.20.0.10
+      - CONTACT_PORT=8001
+      - LOG_LEVEL=info
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "8003:8001"
+    volumes:
+      - ./logs:/app/logs
+      - raft-node-3-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - raft-node-1
+      - raft-node-2
+    restart: unless-stopped
+
+  # Raft Node 4 - Follower
+  raft-node-4:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-node-4
+    environment:
+      - NODE_ID=raft-node-4
+      - NODE_IP=172.20.0.13
+      - NODE_PORT=8001
+      - CONTACT_IP=172.20.0.10
+      - CONTACT_PORT=8001
+      - LOG_LEVEL=info
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.13
+    ports:
+      - "8004:8001"
+    volumes:
+      - ./logs:/app/logs
+      - raft-node-4-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 50s
+    depends_on:
+      - raft-node-1
+      - raft-node-2
+      - raft-node-3
+    restart: unless-stopped
+
+  # Client Container for Testing
+  raft-client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-client
+    environment:
+      - NODE_ID=raft-client
+      - NODE_TYPE=client
+      - LOG_LEVEL=info
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.20
+    volumes:
+      - ./logs:/app/logs
+      - .:/app/workspace
+    working_dir: /app/workspace
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    depends_on:
+      - raft-node-1
+      - raft-node-2
+      - raft-node-3
+      - raft-node-4
+    restart: unless-stopped
+
+  # Infrastructure Manager Container (for advanced operations)
+  raft-infrastructure:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raft-infrastructure
+    environment:
+      - NODE_ID=raft-infrastructure
+      - NODE_TYPE=infrastructure
+      - LOG_LEVEL=debug
+    networks:
+      raft-network:
+        ipv4_address: 172.20.0.30
+    volumes:
+      - ./logs:/app/logs
+      - .:/app/workspace
+      - /var/run/docker.sock:/var/run/docker.sock  # Docker socket for node management
+    working_dir: /app/workspace
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    depends_on:
+      - raft-node-1
+      - raft-node-2
+      - raft-node-3
+      - raft-node-4
+    restart: unless-stopped
+    privileged: true  # Required for Docker socket access
+
+networks:
+  raft-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+    driver_opts:
+      com.docker.network.bridge.name: raft-bridge
+
+volumes:
+  # Data volumes for each node
+  raft-node-1-data:
+    driver: local
+  raft-node-2-data:
+    driver: local
+  raft-node-3-data:
+    driver: local
+  raft-node-4-data:
+    driver: local
+  
+  # Shared logs volume
+  logs:
+    driver: local

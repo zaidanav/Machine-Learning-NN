@@ -1,0 +1,52 @@
+{
+  "name": "raft-consensus",
+  "version": "1.0.0",
+  "description": "Raft Consensus Protocol Implementation in TypeScript",
+  "main": "dist/app/Server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/app/Server.js",
+    "dev": "ts-node src/app/Server.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "clean": "rimraf dist",
+    "client": "ts-node src/client/TestClient.ts",
+    "demo": "npm run build && node dist/client/TestClient.js demo"
+  },
+  "keywords": ["raft", "consensus", "distributed-systems", "typescript", "nodejs"],
+  "authors": ["Zaidan", "Farhan", "Dhinto"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "uuid": "^9.0.0",
+    "winston": "^3.8.2",
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.0",
+    "@types/express": "^4.17.17",
+    "@types/cors": "^2.8.13",
+    "@types/uuid": "^9.0.1",
+    "@types/jest": "^29.5.0",
+    "@types/node-fetch": "^2.6.2",
+    "@typescript-eslint/eslint-plugin": "^5.57.0",
+    "@typescript-eslint/parser": "^5.57.0",
+    "eslint": "^8.37.0",
+    "prettier": "^2.8.7",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.2",
+    "rimraf": "^4.4.1",
+    "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

@@ -1,0 +1,27 @@
+# .gitignore
+node_modules/
+dist/
+*.log
+logs/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

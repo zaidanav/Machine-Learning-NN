@@ -1,0 +1,37 @@
+# Simple Dockerfile for quick development
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    iproute2 \
+    iputils \
+    curl \
+    bash \
+    tcpdump \
+    net-tools
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source and config files
+COPY . .
+
+# Build TypeScript
+RUN npm run build
+
+# Create logs directory
+RUN mkdir -p /app/logs
+
+# Expose port
+EXPOSE 8001
+
+# Health check
+HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Start command - SIMPLE
+CMD ["npm", "start"]
